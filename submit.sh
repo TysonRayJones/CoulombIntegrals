@@ -21,7 +21,8 @@ module load GCCcore/10.2.0
 
 
 for nthreads in 1 2 4 8 16 32 48 64 96; do
-    echo '1 thread:' >> timer.txt
+    echo "${nthreads} thread:" >> timer.txt
     export OMP_NUM_THREADS=$nthreads
     { time ./calcer 8 trash.txt ; } 2>> timer.txt
+    ' ' >> timer.txt
 done
