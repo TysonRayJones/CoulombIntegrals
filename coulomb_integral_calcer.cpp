@@ -1,3 +1,5 @@
+// supply cmd-line arg -DUSE_CACHE for a speedup
+
 #include <math.h>
 #include <stdio.h>
 #include <cmath>
@@ -10,7 +12,62 @@ using std::array;
 using std::ofstream;
 
 
+#define CACHE_SIZE 200
+double factorialCache[CACHE_SIZE];
+double doubleFactorialCache[CACHE_SIZE];
+
+
+void prepare_caches(int maxInd) {
+
+    #ifdef USE_CACHE
+        
+        int maxFacInput = 8*maxInd;
+        if (maxFacInput > CACHE_SIZE) {
+            printf("Cache size too small; increase to %d\n", maxFacInput);
+            exit(1);
+        }
+        
+        factorialCache[0] = 1;
+        double f = 1;
+        int i;
+        for (i=1; i<maxFacInput; i++) {
+            f *= i;
+            factorialCache[i] = f;
+        }
+        factorialCache[i] = -1;
+        
+        doubleFactorialCache[0] = 1;
+        f = 1;
+        for (i=1; i<maxFacInput; i+=2) {
+            f *= i;
+            doubleFactorialCache[i] = f;
+        }
+        doubleFactorialCache[i] = -1;
+        
+    #endif
+}
+
+void print_caches() {
+    #ifdef USE_CACHE
+        for (int i=0; factorialCache[i] != -1; i++) {
+            printf("%d! = %g", i, factorialCache[i]);
+            if (i%2)
+                printf("\t\t%d!! = %g", i, doubleFactorialCache[i]);
+            printf("\n");
+        }
+    #else
+        printf("No caches prepared (USE_CACHE=0)");
+    #endif
+}
+
+
+
 double inline factorial(int n) {
+    #ifdef USE_CACHE
+        return factorialCache[n];
+    #endif
+    
+    
     // double to avoid int overflow
     double f = 1;
     while (n > 1)
@@ -19,6 +76,10 @@ double inline factorial(int n) {
 }
 
 double inline doubleFactorial(int n) {
+    #ifdef USE_CACHE
+        return doubleFactorialCache[n];
+    #endif
+    
     // double to avoid int overflow
     double f = 1;
     while (n > 1) {
@@ -29,6 +90,12 @@ double inline doubleFactorial(int n) {
 }
 
 double inline combinations(int n, int r) {
+    #ifdef USE_CACHE
+        if (r >= n)
+            return 0;
+        return factorial(n)/(factorial(r) * factorial(n-r));
+    #endif
+    
     // double to avoid int overflow
     double f = 1;
     int j = n;
@@ -53,7 +120,7 @@ int inline powerOfNegativeOne(int p) {
     return 1 + -2*isOdd(p);
 }
 
-double getIntegral(array<int,8> inds) {
+double inline getIntegral(array<int,8> inds) {
     auto [n_a, m_a, n_b, m_b, n_g, m_g, n_d, m_d] = inds;
     
     int n_sum = n_a + n_d + n_b + n_g;
@@ -163,6 +230,7 @@ void saveMatrix(double** matr, int dim, char* fn) {
 }
 
 
+
 int main(int argc, char** argv) { 
     
     int numArgs = argc-1;
@@ -178,6 +246,15 @@ int main(int argc, char** argv) {
         array<int,8> inds;
         for (int i=0; i<8; i++)
             inds[i] = atoi(argv[i+1]);
+            
+        int maxInd = -1;
+        for (int i=0; i<8; i++)
+            if (inds[i] > maxInd)
+                maxInd = inds[i];
+            
+        prepare_caches(maxInd);
+        print_caches();
+        
         double r = getIntegral(inds);
         printf("%g\n", r);
     }
@@ -191,6 +268,7 @@ int main(int argc, char** argv) {
         for (int i=0; i<dim; i++)
             matr[i] = (double*) malloc(dim * sizeof **matr);
         
+        prepare_caches(maxInd);
         populateMatrix(matr, maxInd);
         saveMatrix(matr, dim, fn);
         

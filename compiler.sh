@@ -1,1 +1,1 @@
-g++ coulomb_integral_calcer.cpp -std=c++17 -Ofast -fopenmp -Wall -o calcer
+g++ coulomb_integral_calcer.cpp -std=c++17 -Ofast -fopenmp -w -o calcer $*
