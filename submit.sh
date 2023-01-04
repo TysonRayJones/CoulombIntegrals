@@ -13,16 +13,17 @@
 
 module load GCCcore/10.2.0
 
-#chmod +x compiler.sh
-# ./compiler.sh
+chmod +x compiler.sh
+./compiler.sh
  
 #export OMP_NUM_THREADS=96
 #./calcer 15 matrix.txt
 
+fn = timer_no_cache.txt
 
 for nthreads in 1 2 4 8 16 32 48 64 96; do
-    echo "${nthreads} thread:" >> timer.txt
+    echo "${nthreads} thread:" >> $fn
     export OMP_NUM_THREADS=$nthreads
-    { time ./calcer 8 trash.txt ; } 2>> timer.txt
+    { time ./calcer 8 trash.txt ; } 2>> $fn
     ' ' >> timer.txt
 done
