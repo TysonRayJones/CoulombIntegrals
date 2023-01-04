@@ -179,7 +179,7 @@ int main(int argc, char** argv) {
         for (int i=0; i<8; i++)
             inds[i] = atoi(argv[i+1]);
         double r = getIntegral(inds);
-        printf("%d\n", r);
+        printf("%g\n", r);
     }
     
     if (numArgs == 2) {

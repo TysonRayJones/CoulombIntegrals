@@ -14,7 +14,7 @@
 module load GCCcore/10.2.0
 
 chmod +x compiler.sh
- ./compiler
+ ./compiler.sh
  
  export OMP_NUM_THREADS=96
 ./calcer 15 matrix.txt
