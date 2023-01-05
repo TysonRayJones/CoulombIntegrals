@@ -230,6 +230,40 @@ void saveMatrix(double** matr, int dim, char* fn) {
 
 
 
+
+void populateRow(double* row, int r, int maxInd) {
+    int dim = (int) pow(maxInd, 4);
+    array<int,8> inds;
+    
+    // map row to 4 indices
+    int rem = r;
+    for (int i=0; i<4; i++) {
+        inds[i] =rem % maxInd;
+        rem /= maxInd;
+    }
+    
+    // iterate every column
+    for (int c=0; c<dim; c++) {
+        
+        // map column to 4 indices
+        int rem = c;
+        for (int i=0; i<4; i++) {
+            inds[4+i] =rem % maxInd;
+            rem /= maxInd;
+        }
+        
+        row[c] = getIntegral(inds);
+    }     
+}
+
+void saveRow(FILE* file, double* row, int dim) {
+    for (int c=0; c<dim; c++)
+        fprintf(file, "%g ",row[c]);
+    fprintf(file, "\n");
+}
+
+
+
 int main(int argc, char** argv) { 
     
     int numArgs = argc-1;
@@ -238,6 +272,9 @@ int main(int argc, char** argv) {
         printf("ERROR: expected 8 or 2 arguments\n");
         printf("Compute single element with: n_a m_a n_b m_b n_g m_g n_d m_d\n");
         printf("Compute full matrix with: ind_max filename\n");
+        printf("Compile with -DUSE_CACHE to accelerate simulation via caches\n");
+        printf("Compile with -fopenmp to accelerate simulation with multithreading (can use caching too)\n");
+        printf("Compile without -fopenmp to serially add rows to file (small memory overhead)\n");
         return 1;
     }
     
@@ -262,19 +299,40 @@ int main(int argc, char** argv) {
         int maxInd = atoi(argv[1]);
         char* fn = argv[2];
         
-        int dim = (int) pow(maxInd, 4);
-        double** matr = (double**) malloc(dim * sizeof *matr);
-        for (int i=0; i<dim; i++)
-            matr[i] = (double*) malloc(dim * sizeof **matr);
-        
         prepare_caches(maxInd);
-        populateMatrix(matr, maxInd);
-        saveMatrix(matr, dim, fn);
+        int dim = (int) pow(maxInd, 4);
         
-        // free matrix heap memory
-        for (int i=0; i<dim; i++)
-            free(matr[i]);
-        free(matr);
+        // if multithreaded, construct entire matrix in memory
+        # ifdef _OPENMP
+            printf("Multithreaded mode. Constructing entire matrix in memory...");
+            
+            double** matr = (double**) malloc(dim * sizeof *matr);
+            for (int i=0; i<dim; i++)
+                matr[i] = (double*) malloc(dim * sizeof **matr);
+            
+            populateMatrix(matr, maxInd);
+            saveMatrix(matr, dim, fn);
+            
+            // free matrix heap memory
+            for (int i=0; i<dim; i++)
+                free(matr[i]);
+            free(matr);
+            
+        // if serial, append row by row to file
+        #else
+            printf("Serial mode. Writing to file row by row...\n");
+        
+            FILE* file = fopen(fn, "w");
+            double* row = (double*) malloc(dim * sizeof *row);
+            
+            for (int r=0; r<dim; r++) {
+                populateRow(row, r, maxInd);
+                saveRow(file, row, dim);
+            }
+            
+            fclose(file);
+        
+        #endif
     }
 
     return 0;
