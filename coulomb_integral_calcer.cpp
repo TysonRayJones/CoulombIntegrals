@@ -8,7 +8,6 @@
 
 
 using std::array;
-using std::ofstream;
 
 
 #define CACHE_SIZE 200
@@ -221,7 +220,7 @@ void saveMatrix(double** matr, int dim, char* fn) {
     
     for (int r=0; r<dim; r++) {
         for (int c=0; c<dim; c++)
-            fprintf(file, "%g ", matr[r][c]);
+            fprintf(file, "%.10e ", matr[r][c]);
         fprintf(file, "\n");
     }
     
