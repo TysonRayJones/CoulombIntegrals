@@ -25,5 +25,5 @@ for nthreads in 1 2 4 8 16 32 48 64 96; do
     echo "${nthreads} thread:" >> $fn
     export OMP_NUM_THREADS=$nthreads
     { time ./calcer 8 trash.txt ; } 2>> $fn
-    ' ' >> timer.txt
+    ' ' >> $fn
 done
