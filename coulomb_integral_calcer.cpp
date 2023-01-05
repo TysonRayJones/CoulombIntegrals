@@ -257,7 +257,7 @@ void populateRow(double* row, int r, int maxInd) {
 
 void saveRow(FILE* file, double* row, int dim) {
     for (int c=0; c<dim; c++)
-        fprintf(file, "%g ",row[c]);
+        fprintf(file, "%.10e ",row[c]);
     fprintf(file, "\n");
 }
 
