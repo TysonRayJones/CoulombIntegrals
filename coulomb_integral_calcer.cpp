@@ -54,7 +54,7 @@ void print_caches() {
             printf("\n");
         }
     #else
-        printf("No caches prepared (USE_CACHE=0)");
+        printf("No caches prepared (use -DUSE_CACHE)\n");
     #endif
 }
 
@@ -75,6 +75,8 @@ double inline factorial(int n) {
 
 double inline doubleFactorial(int n) {
     #ifdef USE_CACHE
+        if (n < 0)
+            return 1;
         return doubleFactorialCache[n];
     #endif
     
@@ -89,7 +91,7 @@ double inline doubleFactorial(int n) {
 
 double inline combinations(int n, int r) {
     #ifdef USE_CACHE
-        if (r >= n)
+        if (r > n)
             return 0;
         return factorial(n)/(factorial(r) * factorial(n-r));
     #endif
@@ -291,7 +293,7 @@ int main(int argc, char** argv) {
         print_caches();
         
         double r = getIntegral(inds);
-        printf("%g\n", r);
+        printf("%.10e\n", r);
     }
     
     if (numArgs == 2) {
@@ -330,6 +332,7 @@ int main(int argc, char** argv) {
             }
             
             fclose(file);
+            free(row);
         
         #endif
     }
